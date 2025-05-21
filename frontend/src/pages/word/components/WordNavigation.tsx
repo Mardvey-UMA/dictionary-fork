@@ -19,8 +19,6 @@ export const WordNavigation = ({
 }: WordNavigationProps) => {
 	const navigate = useNavigate()
 
-	console.log('WordNavigation props:', { currentWordId, words, courseId })
-
 	if (!words?.length) {
 		return (
 			<div className='word-navigation'>
@@ -30,12 +28,6 @@ export const WordNavigation = ({
 	}
 
 	const currentIndex = words.findIndex(word => word.id === currentWordId)
-	console.log('Navigation debug:', {
-		currentIndex,
-		currentWordId,
-		wordsLength: words.length,
-	})
-
 	const prevWord = words[currentIndex - 1]
 	const nextWord = words[currentIndex + 1]
 

@@ -17,8 +17,6 @@ export const WordPage = () => {
 		Number(courseId)
 	)
 
-	console.log('WordPage data:', { word, course, courseId })
-
 	const handleBackToCourse = () => {
 		if (courseId) {
 			navigate(`/course/${courseId}`)
@@ -35,7 +33,7 @@ export const WordPage = () => {
 		return <div>Слово не найдено</div>
 	}
 
-	// Получаем все слова курса из всех уровней
+	// Get all words from all levels in the course
 	const allCourseWords = course?.levels.flatMap(level => level.words) ?? []
 
 	return (
