@@ -1,96 +1,116 @@
 import { useCheckAnswer } from '@/hooks/api/learn.hooks'
 import type { LearningMaterialDTO } from '@/shared/types/learn'
-import { Button, Grid } from 'antd'
+import { SoundOutlined } from '@ant-design/icons'
+import { Button, Grid, Progress, Typography } from 'antd'
 import { useState } from 'react'
-import { AudioPlayer } from './AudioPlayer'
 import './LearningExercise.scss'
 
+const { Title, Text } = Typography
 const { useBreakpoint } = Grid
-const FEEDBACK_DELAY = 900 // - время, пока подсветка видна (мс)
+const FEEDBACK_DELAY = 1500
 
 interface Props {
-	material?: LearningMaterialDTO
-	onNext: () => void
+  material?: LearningMaterialDTO
+  onNext: () => void
+  progress?: number
 }
 
-export const LearningExercise = ({ material, onNext }: Props) => {
-	const screens = useBreakpoint()
-	const { mutate: checkAnswer } = useCheckAnswer()
+export const LearningExercise = ({ material, onNext, progress = 0 }: Props) => {
+  const screens = useBreakpoint()
+  const { mutate: checkAnswer } = useCheckAnswer()
+  const [selected, setSelected] = useState<string | null>(null)
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
 
-	/** выбранный пользователем вариант */
-	const [selected, setSelected] = useState<string | null>(null)
-	/** правильность последнего ответа */
-	const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
+  const isAudioToWord = material?.type === 'AUDIO_TO_WORD'
+  const isWordToImage = material?.type === 'WORD_TO_IMAGE'
+  const isImageToWord = material?.type === 'IMAGE_TO_WORD'
 
-	const isAudioToWord = material?.type === 'AUDIO_TO_WORD'
-	const isWordToImage = material?.type === 'WORD_TO_IMAGE'
-	const isImageToWord = material?.type === 'IMAGE_TO_WORD'
+  const handleAnswer = (answer: string) => {
+    if (!material || selected) return
 
-	const handleAnswer = (answer: string) => {
-		if (!material || selected) return // уже ответили
+    setSelected(answer)
+    checkAnswer(
+      { wordId: material.targetWord.id, answer, type: material.type },
+      {
+        onSuccess: res => {
+          setIsCorrect(res.correct)
+          setTimeout(() => {
+            setSelected(null)
+            setIsCorrect(null)
+            onNext()
+          }, FEEDBACK_DELAY)
+        },
+      }
+    )
+  }
 
-		setSelected(answer)
+  const handlePlayAudio = () => {
+    if (material?.targetWord.audioPath) {
+      new Audio(material.targetWord.audioPath).play()
+    }
+  }
 
-		checkAnswer(
-			{ wordId: material.targetWord.id, answer, type: material.type },
-			{
-				onSuccess: res => {
-					setIsCorrect(res.correct)
+  return (
+    <div className="exercise-container">
+      <div className="target-section">
+        {isAudioToWord ? (
+          <div className="audio-player">
+            <Button
+              type="primary"
+              shape="circle"
+              icon={<SoundOutlined />}
+              size="large"
+              onClick={handlePlayAudio}
+            />
+          </div>
+        ) : isImageToWord ? (
+          <img
+            src={material?.targetWord.imagePath}
+            alt="Target"
+            className="target-image"
+          />
+        ) : (
+          <Title level={2} className="target-word">
+            {material?.targetWord.word}
+          </Title>
+        )}
+      </div>
 
-					// ждём, чтобы пользователь увидел цвет/подсказку, и берём след. вопрос
-					setTimeout(() => {
-						setSelected(null)
-						setIsCorrect(null)
-						onNext()
-					}, FEEDBACK_DELAY)
-				},
-			}
-		)
-	}
+      <div className={`options-grid ${screens.md ? 'desktop' : ''}`}>
+        {material?.options.map((option, index) => {
+          const state = selected === option ? (isCorrect ? 'correct' : 'wrong') : undefined
+          const feedback = state === 'correct' ? 'Правильно!' : 'Неверно'
 
-	return (
-		<div className='exercise-container'>
-			{/* 1. Аудио-подсказка (AUDIO_TO_WORD) */}
-			{isAudioToWord && <AudioPlayer src={material?.targetWord.audioPath} />}
+          return (
+            <Button
+              key={index}
+              className="option-button"
+              disabled={!!selected}
+              data-state={state}
+              data-feedback={feedback}
+              onClick={() => handleAnswer(option)}
+            >
+              {isWordToImage ? (
+                <img src={option} alt="Option" className="image-option" />
+              ) : (
+                <span className="word-option">{option}</span>
+              )}
+            </Button>
+          )
+        })}
+      </div>
 
-			{/* 2. Целевая картинка (IMAGE_TO_WORD) */}
-			{isImageToWord && (
-				<div className='target-wrapper'>
-					<img
-						src={material!.targetWord.imagePath}
-						alt={material!.targetWord.word}
-						className='target-image'
-					/>
-				</div>
-			)}
-
-			{/* 3. Варианты ответа */}
-			<div className={`options-grid ${screens.md ? 'desktop' : 'mobile'}`}>
-				{material?.options.map(option => {
-					/** подсвечиваем только выбранную кнопку */
-					let state: 'correct' | 'wrong' | undefined
-					if (selected && option === selected) {
-						state = isCorrect ? 'correct' : 'wrong'
-					}
-
-					return (
-						<Button
-							key={option}
-							size='large'
-							className='option-button'
-							data-state={state}
-							disabled={!!selected} // блокируем клики, пока показываем фидбек
-							onClick={() => handleAnswer(option)}
-						>
-							{isWordToImage ? (
-								<img src={option} alt='Вариант' className='image-option' />
-							) : (
-								option
-							)}
-						</Button>
-					)
-				})}
-			</div>
-		</div>
-	)
+      <div className="progress-section">
+        <Text type="secondary">Общий прогресс</Text>
+        <Progress
+          percent={progress}
+          status="active"
+          strokeColor={{
+            '0%': '#4f46e5',
+            '100%': '#10b981',
+          }}
+        />
+      </div>
+    </div>
+  )
 }

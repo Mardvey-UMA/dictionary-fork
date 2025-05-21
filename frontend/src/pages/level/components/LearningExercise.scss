@@ -1,83 +1,144 @@
 .exercise-container {
-	/* сетка */
-	.options-grid {
-		display: grid;
-		gap: 16px;
-		margin-top: 32px;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 32px;
 
-		&.desktop {
-			grid-template-columns: repeat(2, 1fr);
-		}
+  .target-section {
+    margin-bottom: 32px;
+    text-align: center;
 
-		/* кнопка-вариант */
-		.option-button {
-			position: relative;
-			width: 100%;
-			height: 100px;
-			padding: 8px;
-			transition: background 0.2s ease;
+    .target-word {
+      font-size: 2.4rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 16px;
+    }
 
-			&[disabled] {
-				cursor: default;
-			}
+    .target-image {
+      max-width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+  }
 
-			/* картинка внутри кнопки */
-			.image-option {
-				width: 100%;
-				height: 100%;
-				object-fit: contain;
-			}
+  .options-grid {
+    display: grid;
+    gap: 16px;
+    margin-top: 32px;
 
-			/* ── подсветка ─────────────────────────────────────────── */
-			&[data-state='correct'] {
-				background: #10b981;
-				color: #fff;
-			}
-			&[data-state='wrong'] {
-				background: #ef4444;
-				color: #fff;
-			}
+    &.desktop {
+      grid-template-columns: repeat(2, 1fr);
+    }
 
-			/* ── всплывающая подпись ───────────────────────────────── */
-			&[data-state='correct']::after,
-			&[data-state='wrong']::after {
-				position: absolute;
-				top: -26px;
-				left: 50%;
-				transform: translateX(-50%);
-				padding: 2px 6px;
-				border-radius: 4px;
-				font-size: 12px;
-				color: #fff;
-				background: rgba(0, 0, 0, 0.85);
-				pointer-events: none;
-				animation: fadeOut 0.9s forwards;
-			}
+    .option-button {
+      position: relative;
+      width: 100%;
+      min-height: 120px;
+      padding: 16px;
+      border-radius: 12px;
+      background: #ffffff;
+      border: 2px solid #e5e7eb;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
-			&[data-state='correct']::after {
-				content: 'Правильно!';
-			}
-			&[data-state='wrong']::after {
-				content: 'Неверно';
-			}
-		}
-	}
+      &:hover:not([disabled]) {
+        border-color: #4f46e5;
+        transform: translateY(-2px);
+      }
 
-	/* плеер аудио */
-	.audio-player {
-		display: flex;
-		justify-content: center;
-		margin: 24px 0;
-	}
+      &[disabled] {
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+
+      .image-option {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: 8px;
+      }
+
+      .word-option {
+        font-size: 1.2rem;
+        font-weight: 500;
+        color: #1a1a1a;
+      }
+
+      &[data-state='correct'] {
+        background: #10b981;
+        border-color: #059669;
+        color: #ffffff;
+      }
+
+      &[data-state='wrong'] {
+        background: #ef4444;
+        border-color: #dc2626;
+        color: #ffffff;
+      }
+
+      &[data-state]::after {
+        content: attr(data-feedback);
+        position: absolute;
+        top: -32px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-size: 14px;
+        color: #ffffff;
+        background: rgba(0, 0, 0, 0.8);
+        white-space: nowrap;
+        opacity: 0;
+        animation: feedback 1.5s ease-in-out;
+      }
+    }
+  }
+
+  .audio-player {
+    display: flex;
+    justify-content: center;
+    margin: 32px 0;
+
+    .ant-btn {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .anticon {
+        font-size: 24px;
+      }
+
+      &:hover {
+        transform: scale(1.05);
+      }
+    }
+  }
+
+  .progress-section {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #e5e7eb;
+
+    .ant-progress {
+      margin-top: 8px;
+    }
+  }
 }
 
-/* анимация исчезновения подписи */
-@keyframes fadeOut {
-	0%,
-	60% {
-		opacity: 1;
-	}
-	100% {
-		opacity: 0;
-	}
+@keyframes feedback {
+  0%, 70% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -8px);
+  }
 }
